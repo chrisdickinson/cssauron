@@ -1,15 +1,5 @@
 module.exports = language
 
-var defaults = {
-  tag: 'tagName.toLowerCase()'
-, contents: 'innerText'
-, id: 'id'
-, class: 'className'
-, parent: 'parentNode'
-, children: 'childNodes'
-, attr: function(node, attr) { return node.getAttribute(attr) }
-}
-
 function language(lookups) {
   return function(selector) {
     return parse(selector, remap(lookups))
