@@ -1,0 +1,24 @@
+{
+  "name": "cssauron",
+  "version": "0.0.0",
+  "description": "create matching selectors from css for your very own nested object hierarchy",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/chrisdickinson/cssauron.git"
+  },
+  "keywords": [
+    "css",
+    "selector",
+    "parser",
+    "match"
+  ],
+  "author": "Chris Dickinson <chris@neversaw.us>",
+  "license": "MIT"
+}
