@@ -63,12 +63,13 @@ function parse(selector, options) {
   }
 
   function parse_validator(bit) {
-    var sub_bits = bit.split(/([\[\.#:"'\]])+/)
+    var sub_bits = bit.split(/([\[\.#:"'\]\*])+/)
       , subvalidators = []
       , match
 
     for(var i = 0, len = sub_bits.length; i < len; ++i) switch(sub_bits[i].charAt(0)) {
       case '': break
+      case '*': subvalidators.push(function(n) { return !!n }); break
       case '#': subvalidators.push(valid(options.id, sub_bits[++i])); break
       case '.': subvalidators.push(valid(options.class, sub_bits[++i])); break
       default:  subvalidators.push(valid(options.tag, sub_bits[i])); break
@@ -115,7 +116,7 @@ function parse(selector, options) {
 
   function direct_parent(node, next) {
     node = options.parent(node)
-    return next(node) ? node : null
+    return node && next(node) ? node : null
   }
 
   function direct_sibling(node, next) {
