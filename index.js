@@ -71,7 +71,7 @@ function parse(selector, options) {
       case '': break
       case '*': subvalidators.push(function(n) { return !!n }); break
       case '#': subvalidators.push(valid(options.id, sub_bits[++i])); break
-      case '.': subvalidators.push(valid(options.class, sub_bits[++i])); break
+      case '.': subvalidators.push(valid(options['class'], sub_bits[++i])); break
       default:  subvalidators.push(valid(options.tag, sub_bits[i])); break
       case ':': subvalidators.push(valid_pseudo(options, sub_bits[++i])); break
       case '[': 
