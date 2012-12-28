@@ -1,5 +1,7 @@
 module.exports = language
 
+var tokenizer = require('./tokenizer')
+
 function language(lookups) {
   return function(selector) {
     return parse(selector, remap(lookups))
@@ -15,94 +17,75 @@ function remap(opts) {
 }
 
 function parse(selector, options) {
-  var bits = selector.split(/([\s>~+]+)/)
-    , attr = null
-    , connectors = [entry]
-    , validators = []
-    , lhs = []
-    , rhs = null
+  var bits = []
+    , stream = tokenizer()
+    , traversal
+    , length
 
-  for(var i = 0, len = bits.length; i < len; ++i) {
-    rhs = bits[i]
-    if(attr) {
-      lhs[lhs.length - 1] += rhs
-      if(rhs.indexOf(']') > -1) {
-        attr = false
-      }
-      continue
-    }
-
-    if(rhs === ' ' && lhs[lhs.length - 1] === '') {
-      continue
-    }
-
-
-    if(rhs.indexOf('[') > -1) {
-      if(rhs.charAt(0) === ' ' && lhs[lhs.length - 1] !== '') {
-        lhs.push('')
-      }
-      lhs.push(rhs.replace(/^\s+/g, ''))
-      attr = rhs.indexOf(']') === -1
-    } else {
-      lhs.push(rhs.replace(/(^\s+|\s+$)/g, ''))
-    }
+  traversal = {
+    '': any_parents
+  , '>': direct_parent
+  , '+': direct_sibling
+  , '~': any_sibling
   }
 
-  for(var i = lhs.length - 1; i > -1; --i) {
-    if(i % 2 === 0) validators.push(parse_validator(lhs[i]))
-    else connectors.push(parse_connector(lhs[i]))
-  }
+  stream
+    .on('data', group)
+    .end(selector)   
 
-  return function(item) {
-    for(var i = 0, len = connectors.length; i < len; ++i) {
-      item = connectors[i](item, validators[i] || function() { return true })
-      if(!item) return false
+  length = bits.length
+
+  function group(token) {
+    if(token.type === 'op' || token.type === 'any-child') {
+      bits.unshift(traversal[token.data])
+      bits.unshift(check())
+      return
     }
 
+    (bits[0] = bits[0] || check()).bits.push(
+      token.type === 'attr' ? attr(token) :
+      token.type === ':' || token.type === '::' ? pseudo(token) :
+      token.type === '*' ? function(node) { return !!node } :
+      matches(token.type, token.data)
+    )
+  }
+
+  return function(node) {
+    var current = entry
+
+    for(var i = 0; i < length; i += 2) {
+      node = current(node, bits[i])
+      if(!node) return false
+
+      current = bits[i + 1]
+    }
     return true
   }
 
-  function parse_validator(bit) {
-    var sub_bits = bit.split(/([\[\.#:"'\]\*])+/)
-      , subvalidators = []
-      , match
-
-    for(var i = 0, len = sub_bits.length; i < len; ++i) switch(sub_bits[i].charAt(0)) {
-      case '': break
-      case '*': subvalidators.push(function(n) { return !!n }); break
-      case '#': subvalidators.push(valid(options.id, sub_bits[++i])); break
-      case '.': subvalidators.push(valid(options['class'], sub_bits[++i])); break
-      default:  subvalidators.push(valid(options.tag, sub_bits[i])); break
-      case ':': subvalidators.push(valid_pseudo(options, sub_bits[++i])); break
-      case '[': 
-        match = ''
-        for(var j = i + 1; j < len && sub_bits[j] !== ']'; ++j) {
-          match += sub_bits[j]
-        }
-
-        i = j + 1
-        subvalidators.push(valid_attr(options.attr, match));
-      break
+  function check() {
+    _check.bits = []
+    _check.push = function(token) {
+      _check.bits.push(token)
     }
+    return _check
 
-    return subvalidators.length === 1 ? subvalidators[0] : function(node) {
-      var i = 0
-        , okay = true
-
-      while(okay && subvalidators[i]) {
-        okay = okay && subvalidators[i++](node)
+    function _check(node) {
+      for(var i = 0, len = _check.bits.length; i < len; ++i) {
+        if(!_check.bits[i](node)) return false
       }
-
-      return okay
+      return true
     }
   }
 
-  function parse_connector(bit) {
-    switch(bit) {
-      case '': return any_parents
-      case '>': return direct_parent
-      case '+': return direct_sibling
-      case '~': return any_sibling
+  function attr(token) {
+    return token.data.lhs ?
+      valid_attr(options.attr, token.data.lhs, token.data.cmp, token.data.rhs) :
+      valid_attr(options.attr, token.data)
+  }
+
+  function matches(type, data) {
+    return function(node) {
+      return options[type](node) == data
     }
   }
 
@@ -145,16 +128,15 @@ function parse(selector, options) {
 
     return null
   }
+
+  function pseudo(token) {
+    return valid_pseudo(options, token.data)
+  }
+
 }
 
 function entry(node, next) {
   return next(node) ? node : null
-}
-
-function valid(fn, match) {
-  return function(node) {
-    return (fn(node) || '').toLowerCase().split(/\s+/).indexOf(match.toLowerCase()) > -1
-  }
 }
 
 function valid_pseudo(options, match) {
@@ -172,17 +154,13 @@ function valid_pseudo(options, match) {
   return valid_contains(options, match.slice(9, -1))
 }
 
-function valid_attr(fn, match) {
-  var bits = match.split(/([\*\$~^\|]{1})?=/)
-    , check = checkattr[bits[1]] || function(l, r) { return l === r }
+function valid_attr(fn, lhs, cmp, rhs) {
+  return function(node) {
+    var attr = fn(node, lhs)
+    if(!cmp) return !!attr
+    if(cmp.length == 1) return attr == rhs
 
-  if(bits.length > 2) bits[2] = bits.slice(2).join('')
-  if(/^['"]{1}.*['"]{1}$/.test(bits[2])) bits[2] = bits[2].slice(1, -1)
-
-  return bits.length > 1 ? function(node) {
-    return check(fn(node, bits[0]), bits[2])
-  } : function(node) {
-    return !!fn(node, bits[0])
+    return checkattr[cmp.charAt(0)](attr, rhs)
   }
 }
 
