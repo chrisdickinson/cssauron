@@ -20,5 +20,8 @@
     "match"
   ],
   "author": "Chris Dickinson <chris@neversaw.us>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "through": "X.X.X"
+  }
 }
