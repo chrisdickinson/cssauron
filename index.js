@@ -9,24 +9,31 @@ function language(lookups) {
 }
 
 function remap(opts) {
-  for(var key in opts) if(opts.hasOwnProperty(key) && typeof opts[key] === 'string') {
-    opts[key] = Function('return function(node, attr) { return node.'+opts[key]+' }')()
+  for(var key in opts) if(opt_okay(opts, key)) {
+    opts[key] = Function(
+        'return function(node, attr) { return node.'+opts[key]+' }'
+    )
+    opts[key] = opts[key]()
   }
 
   return opts
 }
 
+function opt_okay(opts, key) {
+  return opts.hasOwnProperty(key) && typeof opts[key] === 'string'
+}
+
 function parse(selector, options) {
-  var bits = []
-    , stream = tokenizer()
+  var stream = tokenizer()
+    , bits = []
     , traversal
     , length
 
   traversal = {
-    '': any_parents
-  , '>': direct_parent
-  , '+': direct_sibling
-  , '~': any_sibling
+      '': any_parents
+    , '>': direct_parent
+    , '+': direct_sibling
+    , '~': any_sibling
   }
 
   stream
@@ -39,14 +46,14 @@ function parse(selector, options) {
     if(token.type === 'op' || token.type === 'any-child') {
       bits.unshift(traversal[token.data])
       bits.unshift(check())
+
       return
     }
 
     (bits[0] = bits[0] || check()).bits.push(
-      token.type === 'attr' ? attr(token) :
-      token.type === ':' || token.type === '::' ? pseudo(token) :
-      token.type === '*' ? function(node) { return !!node } :
-      matches(token.type, token.data)
+        token.type === 'attr' ? attr(token) :
+        token.type === ':' || token.type === '::' ? pseudo(token) :
+        token.type === '*' ? Boolean : matches(token.type, token.data)
     )
   }
 
@@ -55,10 +62,14 @@ function parse(selector, options) {
 
     for(var i = 0; i < length; i += 2) {
       node = current(node, bits[i])
-      if(!node) return false
+
+      if(!node) {
+        return false
+      }
 
       current = bits[i + 1]
     }
+
     return true
   }
 
@@ -67,19 +78,28 @@ function parse(selector, options) {
     _check.push = function(token) {
       _check.bits.push(token)
     }
+
     return _check
 
     function _check(node) {
       for(var i = 0, len = _check.bits.length; i < len; ++i) {
-        if(!_check.bits[i](node)) return false
+        if(!_check.bits[i](node)) {
+          return false
+        }
       }
+
       return true
     }
   }
 
   function attr(token) {
     return token.data.lhs ?
-      valid_attr(options.attr, token.data.lhs, token.data.cmp, token.data.rhs) :
+      valid_attr(
+          options.attr
+        , token.data.lhs
+        , token.data.cmp
+        , token.data.rhs
+      ) :
       valid_attr(options.attr, token.data)
   }
 
@@ -99,31 +119,44 @@ function parse(selector, options) {
 
   function direct_parent(node, next) {
     node = options.parent(node)
+
     return node && next(node) ? node : null
   }
 
   function direct_sibling(node, next) {
     var parent = options.parent(node)
-      , children = options.children(parent)
       , idx = 0
+      , children
+
+    children = options.children(parent)
 
     for(var i = 0, len = children.length; i < len; ++i) {
       if(children[i] === node) {
         idx = i
+
         break
       }
     }
 
-    return children[idx - 1] && next(children[idx - 1]) ? children[idx - 1] : null
+    return children[idx - 1] && next(children[idx - 1]) ?
+      children[idx - 1] :
+      null
   }
 
   function any_sibling(node, next) {
     var parent = options.parent(node)
-      , children = options.children(parent)
+      , children
+
+    children = options.children(parent)
 
     for(var i = 0, len = children.length; i < len; ++i) {
-      if(children[i] === node) return null
-      if(next(children[i])) return children[i]
+      if(children[i] === node) {
+        return null
+      }
+
+      if(next(children[i])) {
+        return children[i]
+      }
     }
 
     return null
@@ -148,7 +181,9 @@ function valid_pseudo(options, match) {
   }
 
   if(match.indexOf('contains') !== 0) {
-    return function() { return false }
+    return function() {
+      return false
+    }
   }
 
   return valid_contains(options, match.slice(9, -1))
@@ -157,8 +192,14 @@ function valid_pseudo(options, match) {
 function valid_attr(fn, lhs, cmp, rhs) {
   return function(node) {
     var attr = fn(node, lhs)
-    if(!cmp) return !!attr
-    if(cmp.length == 1) return attr == rhs
+
+    if(!cmp) {
+      return !!attr
+    }
+
+    if(cmp.length == 1) {
+      return attr == rhs
+    }
 
     return checkattr[cmp.charAt(0)](attr, rhs)
   }
@@ -173,6 +214,7 @@ function valid_first_child(options) {
 function valid_last_child(options) {
   return function(node) {
     var children = options.children(options.parent(node))
+
     return children[children.length - 1] === node
   }
 }
@@ -196,9 +238,29 @@ function valid_contains(options, contents) {
 }
 
 var checkattr = {
-  '$': function(l, r) { return l.slice(l.length - r.length) === r }
-, '^': function(l, r) { return l.slice(0, r.length) === r }
-, '*': function(l, r) { return l.indexOf(r) > -1 }
-, '~': function(l, r) { return l.split(/\s+/).indexOf(r) > -1 }
-, '|': function(l, r) { return l.split('-').indexOf(r) > -1 }
+    '$': check_end
+  , '^': check_beg
+  , '*': check_any
+  , '~': check_spc
+  , '|': check_dsh
+}
+
+function check_end(l, r) {
+  return l.slice(l.length - r.length) === r
+}
+
+function check_beg(l, r) {
+  return l.slice(0, r.length) === r
+}
+
+function check_any(l, r) {
+  return l.indexOf(r) > -1
+}
+
+function check_spc(l, r) {
+  return l.split(/\s+/).indexOf(r) > -1
+}
+
+function check_dsh(l, r) {
+  return l.split('-').indexOf(r) > -1
 }
