@@ -12,6 +12,7 @@ var PSEUDOSTART = 'pseudo-start'
   , READY = '(ready)'
   , OPERATION = 'op'
   , CLASS = 'class'
+  , COMMA = 'comma'
   , ATTR = 'attr'
   , TAG = 'tag'
   , STAR = '*'
@@ -73,6 +74,7 @@ function tokenize() {
       case ':' === c: state = PSEUDOCLASS; break
       case '[' === c: state = ATTR_START; break
       case '*' === c: star(); break
+      case ',' === c: comma(); break
       case /[>\+~]/.test(c): state = OPERATION; break
       case /\s/.test(c): state = ANY_CHILD; break 
       case /[\w\d\-_]/.test(c): state = TAG; --idx; break
@@ -82,6 +84,13 @@ function tokenize() {
   function star() {
     state = STAR
     gathered = ['*']
+    stream.queue(token())
+    state = READY
+  }
+
+  function comma() {
+    state = COMMA
+    gathered = [',']
     stream.queue(token())
     state = READY
   }

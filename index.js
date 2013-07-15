@@ -25,9 +25,11 @@ function opt_okay(opts, key) {
 
 function parse(selector, options) {
   var stream = tokenizer()
-    , bits = []
+    , selectors = [[]]
     , traversal
-    , length
+    , bits
+
+  bits = selectors[0]
 
   traversal = {
       '': any_parents
@@ -40,9 +42,12 @@ function parse(selector, options) {
     .on('data', group)
     .end(selector)   
 
-  length = bits.length
-
   function group(token) {
+    if(token.type === 'comma') {
+      selectors.unshift(bits = [])
+      return
+    }
+
     if(token.type === 'op' || token.type === 'any-child') {
       bits.unshift(traversal[token.data])
       bits.unshift(check())
@@ -58,19 +63,33 @@ function parse(selector, options) {
   }
 
   return function(node) {
-    var current = entry
+    var current
+      , length
+      , orig
 
-    for(var i = 0; i < length; i += 2) {
-      node = current(node, bits[i])
+    orig = node
 
-      if(!node) {
-        return false
+    for(var i = 0, len = selectors.length; i < len; ++i) {
+      bits = selectors[i]
+      current = entry
+      length = bits.length
+      node = orig
+
+      for(var j = 0; j < length; j += 2) {
+        node = current(node, bits[j])
+
+        if(!node) {
+          break
+        }
+
+        current = bits[j + 1]
       }
 
-      current = bits[i + 1]
+      if(j >= length) {
+        return true
+      }
     }
-
-    return true
+    return false
   }
 
   function check() {

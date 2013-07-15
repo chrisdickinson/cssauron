@@ -48,8 +48,12 @@ function test_select_multiple() {
   parent.parent = root
 
   assert.ok(language('#root-id #one-id')(data))
+  assert.ok(language('#nope,#root-id #one-id')(data))
+  assert.ok(!language('#nope, #nada')(data))
   assert.ok(!language('#root-id > #one-id')(data))
   assert.ok(language('#root-id > #parent-id > #one-id')(data))
+  assert.ok(language('#parent-id > #one-id,\n#root-id > #parent-id > #one-id')(data))
+  assert.ok(language('#ok,\n    #parent-id > #one-id,\n#root-id > #parent-id > #one-id')(data))
   assert.ok(language('.one-class + .two-class')(data2))
   assert.ok(!language('.one-class + #one-id')(data))
   assert.ok(language('one-tag ~ #three-id')(data3))
