@@ -185,7 +185,7 @@ function tokenize() {
       gathered.pop()
       stream.queue({
           type: rhs 
-        , data: lhs+'('+gathered.join('')+')'
+        , data: lhs + '(' + gathered.join('') + ')'
       })
 
       state = READY
