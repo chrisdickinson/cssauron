@@ -45,6 +45,7 @@ function parse(selector, options) {
   function group(token) {
     if(token.type === 'comma') {
       selectors.unshift(bits = [])
+
       return
     }
 
@@ -89,6 +90,7 @@ function parse(selector, options) {
         return true
       }
     }
+
     return false
   }
 
@@ -199,13 +201,23 @@ function valid_pseudo(options, match) {
     case 'root': return valid_root(options)
   }
 
-  if(match.indexOf('contains') !== 0) {
-    return function() {
-      return false
-    }
+  if(match.indexOf('contains') === 0) {
+    return valid_contains(options, match.slice(9, -1))
   }
 
-  return valid_contains(options, match.slice(9, -1))
+  if(match.indexOf('any') === 0) {
+    return valid_any_match(options, match.slice(4, -1))
+  }
+
+  return function() {
+    return false
+  }
+}
+
+function valid_any_match(options, selector) {
+  var fn = parse(selector, options)
+
+  return fn
 }
 
 function valid_attr(fn, lhs, cmp, rhs) {

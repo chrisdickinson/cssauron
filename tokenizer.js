@@ -27,6 +27,7 @@ function tokenize() {
     , stream
     , length
     , quote
+    , depth
     , lhs
     , cmp
     , c
@@ -136,6 +137,7 @@ function tokenize() {
       lhs = gathered.join('')
       state = PSEUDOSTART
       gathered.length = 0
+      depth = 1
       ++idx
 
       return
@@ -170,20 +172,25 @@ function tokenize() {
       return
     }
 
-    state_gather(true)
+    gathered.push(c)
 
-    if(state !== READY) {
-      return
+    if(c === '(') {
+      ++depth
+    } else if(c === ')') {
+      --depth
     }
-   
-    stream.queue({
-        type: rhs 
-      , data: lhs+'('+gathered.join('')+')'
-    })
+    
+    if(!depth) {
+      gathered.pop()
+      stream.queue({
+          type: rhs 
+        , data: lhs+'('+gathered.join('')+')'
+      })
 
-    state = READY
-    lhs = rhs = cmp = null
-    gathered.length = 0
+      state = READY
+      lhs = rhs = cmp = null
+      gathered.length = 0
+    }
 
     return 
   }

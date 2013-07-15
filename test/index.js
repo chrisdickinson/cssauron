@@ -81,6 +81,11 @@ function test_select_multiple() {
   assert.ok(!language(':contains(world)')(data))
   assert.ok(language(':contains(hello)')(data2))
   assert.ok(language(':contains(world)')(data2))
+
+  assert.ok(
+      language(':root > :any(thing-tag, parent-tag, #asdf) > #one-id')(data)
+  )
+
 }
 
 // utils

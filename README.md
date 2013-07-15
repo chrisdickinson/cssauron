@@ -59,6 +59,7 @@ Returns true or false depending on whether the provided node matches the selecto
 `:empty`
 `:root`
 `:contains(text)`
+`:any(selector, selector, selector)`
 
 ## Supported attribute lookups
 
