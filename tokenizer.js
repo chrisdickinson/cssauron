@@ -29,6 +29,7 @@ function tokenize() {
     , quote
     , depth
     , lhs
+    , rhs
     , cmp
     , c
 
