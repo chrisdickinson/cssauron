@@ -1,6 +1,6 @@
 {
   "name": "cssauron",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "create matching selectors from css for your very own nested object hierarchy",
   "main": "index.js",
   "directories": {
