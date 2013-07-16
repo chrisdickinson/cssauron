@@ -143,6 +143,10 @@ function tokenize() {
 
       return
     }
+
+    state = PSEUDOCLASS
+    stream.queue(token())
+    state = READY
   }
 
   function state_pseudostart() {
