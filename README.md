@@ -23,6 +23,14 @@ if(selector(element)) {
 }
 ```
 
+It's easy to use with your favorite nested tree structures!
+Delicious with HTML! Digestable with JSON!
+
+| HTML | JSON | GLSL AST | JS AST (Esprima) |
+|------|------|----------|------------------------|
+| [cssauron-html](http://npm.im/cssauron-html) | [cssauron-json](http://npm.im/cssauron-json) | [cssauron-glsl](http://npm.im/cssauron-glsl) | [cssauron-falafel](http://npm.im/cssauron-falafel) |
+
+
 # API
 
 ### require('cssauron')(options) -> selector factory
