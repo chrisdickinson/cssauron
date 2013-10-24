@@ -11,7 +11,7 @@ function language(lookups) {
 function remap(opts) {
   for(var key in opts) if(opt_okay(opts, key)) {
     opts[key] = Function(
-        'return function(node, attr) { return node.'+opts[key]+' }'
+        'return function(node, attr) { return node.' + opts[key] + ' }'
     )
     opts[key] = opts[key]()
   }
@@ -25,6 +25,7 @@ function opt_okay(opts, key) {
 
 function parse(selector, options) {
   var stream = tokenizer()
+    , default_subj = true
     , selectors = [[]]
     , traversal
     , bits
@@ -40,9 +41,11 @@ function parse(selector, options) {
 
   stream
     .on('data', group)
-    .end(selector)   
+    .end(selector)
 
   function group(token) {
+    var crnt
+
     if(token.type === 'comma') {
       selectors.unshift(bits = [])
 
@@ -56,28 +59,45 @@ function parse(selector, options) {
       return
     }
 
-    (bits[0] = bits[0] || check()).bits.push(
+    bits[0] = bits[0] || check()
+    crnt = bits[0]
+
+    if(token.type === '!') {
+      crnt.subject =
+      selectors[0].subject = true
+
+      return
+    }
+
+    crnt.push(
         token.type === 'attr' ? attr(token) :
         token.type === ':' || token.type === '::' ? pseudo(token) :
-        token.type === '*' ? Boolean : matches(token.type, token.data)
+        token.type === '*' ? Boolean :
+        matches(token.type, token.data)
     )
   }
 
-  return function(node) {
+  return selector_fn
+
+  function selector_fn(node, as_boolean) {
     var current
       , length
       , orig
+      , subj
+      , set
 
     orig = node
+    set = []
 
     for(var i = 0, len = selectors.length; i < len; ++i) {
       bits = selectors[i]
       current = entry
       length = bits.length
       node = orig
+      subj = []
 
       for(var j = 0; j < length; j += 2) {
-        node = current(node, bits[j])
+        node = current(node, bits[j], subj)
 
         if(!node) {
           break
@@ -87,26 +107,53 @@ function parse(selector, options) {
       }
 
       if(j >= length) {
-        return true
+        if(as_boolean) {
+          return true
+        }
+
+        add(!bits.subject ? [orig] : subj)
       }
     }
 
-    return false
+    if(as_boolean) {
+      return false
+    }
+
+    return !set.length ? false :
+            set.length === 1 ? set[0] :
+            set
+
+    function add(items) {
+      var next
+
+      while(items.length) {
+        next = items.shift()
+
+        if(set.indexOf(next) === -1) {
+          set.push(next)
+        }
+      }
+    }
   }
 
   function check() {
     _check.bits = []
+    _check.subject = false
     _check.push = function(token) {
       _check.bits.push(token)
     }
 
     return _check
 
-    function _check(node) {
+    function _check(node, subj) {
       for(var i = 0, len = _check.bits.length; i < len; ++i) {
         if(!_check.bits[i](node)) {
           return false
         }
+      }
+
+      if(_check.subject) {
+        subj.push(node)
       }
 
       return true
@@ -130,21 +177,21 @@ function parse(selector, options) {
     }
   }
 
-  function any_parents(node, next) {
-    do { 
+  function any_parents(node, next, subj) {
+    do {
       node = options.parent(node)
-    } while(node && !next(node))
+    } while(node && !next(node, subj))
 
     return node
   }
 
-  function direct_parent(node, next) {
+  function direct_parent(node, next, subj) {
     node = options.parent(node)
 
-    return node && next(node) ? node : null
+    return node && next(node, subj) ? node : null
   }
 
-  function direct_sibling(node, next) {
+  function direct_sibling(node, next, subj) {
     var parent = options.parent(node)
       , idx = 0
       , children
@@ -159,12 +206,12 @@ function parse(selector, options) {
       }
     }
 
-    return children[idx - 1] && next(children[idx - 1]) ?
+    return children[idx - 1] && next(children[idx - 1], subj) ?
       children[idx - 1] :
       null
   }
 
-  function any_sibling(node, next) {
+  function any_sibling(node, next, subj) {
     var parent = options.parent(node)
       , children
 
@@ -175,7 +222,7 @@ function parse(selector, options) {
         return null
       }
 
-      if(next(children[i])) {
+      if(next(children[i], subj)) {
         return children[i]
       }
     }
@@ -189,8 +236,8 @@ function parse(selector, options) {
 
 }
 
-function entry(node, next) {
-  return next(node) ? node : null
+function entry(node, next, subj) {
+  return next(node, subj) ? node : null
 }
 
 function valid_pseudo(options, match) {
@@ -228,7 +275,7 @@ function valid_attr(fn, lhs, cmp, rhs) {
       return !!attr
     }
 
-    if(cmp.length == 1) {
+    if(cmp.length === 1) {
       return attr == rhs
     }
 

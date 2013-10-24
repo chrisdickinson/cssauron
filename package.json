@@ -23,5 +23,8 @@
   "license": "MIT",
   "dependencies": {
     "through": "X.X.X"
+  },
+  "devDependencies": {
+    "tape": "~2.0.0"
   }
 }

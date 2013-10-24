@@ -48,9 +48,32 @@ nodes. You only need to provide the configuration necessary for the selectors yo
 
 Compiles a matching function.
 
-### match(node) -> true or false
+### match(node) -> false | node | [subjects, ...]
 
-Returns true or false depending on whether the provided node matches the selector.
+Returns false if the provided node matches the selector. Returns truthy if the provided
+node *does* match. Exact return value is determined by the selector, based on
+the [CSS4 subject selector spec](http://dev.w3.org/csswg/selectors4/#subject): if only
+a single node is matched, only that node is returned. If multiple subjects are matched,
+a deduplicated array of those subjects are returned.
+
+For example, given the following HTML (and `cssauron-html`):
+
+```html
+<div id="gary-busey">
+    <p>
+        <span class="jake-busey">
+        </span>
+    </p>
+</div>
+```
+
+Checking the following selectors against the `span.jake-busey` element yields:
+
+`#gary-busey`: `false`, no match.
+`#gary-busey *`: `span.jake-busey`, a single match.
+`!#gary-busey *`: `div#gary-busey`, a single match using the `!` subject selector.
+`#gary-busey *, p span`: `span.jake-busey`, a single match, though both selectors match.
+`#gary-busey !* !*, !p > !span`: `[p, span.jake-busey]`, two matches.
 
 ## Supported pseudoclasses 
 

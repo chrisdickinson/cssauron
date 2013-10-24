@@ -14,6 +14,7 @@ var PSEUDOSTART = 'pseudo-start'
   , CLASS = 'class'
   , COMMA = 'comma'
   , ATTR = 'attr'
+  , SUBJECT = '!'
   , TAG = 'tag'
   , STAR = '*'
   , ID = 'id'
@@ -41,7 +42,7 @@ function tokenize() {
 
     while(idx < length && (c = data[idx++])) {
       switch(state) {
-        case READY: state_ready(); break 
+        case READY: state_ready(); break
         case ANY_CHILD: state_any_child(); break
         case OPERATION: state_op(); break
         case ATTR_START: state_attr_start(); break
@@ -51,7 +52,7 @@ function tokenize() {
         case PSEUDOPSEUDO: state_pseudo(); break
         case PSEUDOSTART: state_pseudostart(); break
         case ID:
-        case TAG: 
+        case TAG:
         case CLASS: state_gather(); break
       }
     }
@@ -75,12 +76,20 @@ function tokenize() {
       case '.' === c: state = CLASS; break
       case ':' === c: state = PSEUDOCLASS; break
       case '[' === c: state = ATTR_START; break
+      case '!' === c: subject(); break
       case '*' === c: star(); break
       case ',' === c: comma(); break
       case /[>\+~]/.test(c): state = OPERATION; break
-      case /\s/.test(c): state = ANY_CHILD; break 
+      case /\s/.test(c): state = ANY_CHILD; break
       case /[\w\d\-_]/.test(c): state = TAG; --idx; break
     }
+  }
+
+  function subject() {
+    state = SUBJECT
+    gathered = ['!']
+    stream.queue(token())
+    state = READY
   }
 
   function star() {
@@ -101,13 +110,13 @@ function tokenize() {
     if(/[>\+~]/.test(c)) {
       return gathered.push(c)
     }
-    
+
     // chomp down the following whitespace.
     if(/\s/.test(c)) {
       return
     }
 
-    stream.queue(token()) 
+    stream.queue(token())
     state = READY
     --idx
   }
