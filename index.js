@@ -256,8 +256,22 @@ function valid_pseudo(options, match) {
     return valid_any_match(options, match.slice(4, -1))
   }
 
+  if(match.indexOf('not') === 0) {
+    return valid_not_match(options, match.slice(4, -1))
+  }
+
   return function() {
     return false
+  }
+}
+
+function valid_not_match(options, selector) {
+  var fn = parse(selector, options)
+
+  return not_function
+  
+  function not_function(node) {
+    return !fn(node, true)
   }
 }
 
