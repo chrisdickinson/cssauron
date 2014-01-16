@@ -77,29 +77,29 @@ For example, given the following HTML (and `cssauron-html`):
 
 Checking the following selectors against the `span.jake-busey` element yields:
 
-`#gary-busey`: `false`, no match.
-`#gary-busey *`: `span.jake-busey`, a single match.
-`!#gary-busey *`: `div#gary-busey`, a single match using the `!` subject selector.
-`#gary-busey *, p span`: `span.jake-busey`, a single match, though both selectors match.
-`#gary-busey !* !*, !p > !span`: `[p, span.jake-busey]`, two matches.
+ - `#gary-busey`: `false`, no match.
+ - `#gary-busey *`: `span.jake-busey`, a single match.
+ - `!#gary-busey *`: `div#gary-busey`, a single match using the `!` subject selector.
+ - `#gary-busey *, p span`: `span.jake-busey`, a single match, though both selectors match.
+ - `#gary-busey !* !*, !p > !span`: `[p, span.jake-busey]`, two matches.
 
 ## Supported pseudoclasses 
 
-`:first-child`
-`:last-child`
-`:empty`
-`:root`
-`:contains(text)`
-`:any(selector, selector, selector)`
+ - `:first-child`
+ - `:last-child`
+ - `:empty`
+ - `:root`
+ - `:contains(text)`
+ - `:any(selector, selector, selector)`
 
 ## Supported attribute lookups
 
-`[attr=value]`: Exact match
-`[attr]`: Attribute exists and is not false-y.
-`[attr$=value]`: Attribute ends with value
-`[attr^=value]`: Attribute starts with value
-`[attr*=value]`: Attribute contains value
-`[attr~=value]`: Attribute, split by whitespace, contains value.
-`[attr|=value]`: Attribute, split by `-`, contains value.
+ - `[attr=value]`: Exact match
+ - `[attr]`: Attribute exists and is not false-y.
+ - `[attr$=value]`: Attribute ends with value
+ - `[attr^=value]`: Attribute starts with value
+ - `[attr*=value]`: Attribute contains value
+ - `[attr~=value]`: Attribute, split by whitespace, contains value.
+ - `[attr|=value]`: Attribute, split by `-`, contains value.
 
 
