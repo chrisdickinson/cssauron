@@ -293,6 +293,10 @@ function valid_attr(fn, lhs, cmp, rhs) {
       return attr == rhs
     }
 
+    if(attr === void 0 || attr === null) {
+      return false
+    }
+
     return checkattr[cmp.charAt(0)](attr, rhs)
   }
 }
