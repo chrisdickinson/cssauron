@@ -159,13 +159,13 @@ function tokenize() {
   }
 
   function state_pseudostart() {
-    if(gathered.length === 0) {
+    if(gathered.length === 0 && !quote) {
       quote = /['"]/.test(c) ? c : null
 
       if(quote) {
         return
       }
-    }    
+    }
 
     if(quote) {
       if(!escaped && c === quote) {
@@ -245,7 +245,7 @@ function tokenize() {
   }
 
   function state_attr_end() {
-    if(!gathered.length) {
+    if(!gathered.length && !quote) {
       quote = /['"]/.test(c) ? c : null
 
       if(quote) {
@@ -261,7 +261,11 @@ function tokenize() {
       }
 
       if(c === '\\') {
-        escaped ? gathered.push(c) : (escaped = true)
+        if(escaped) {
+          gathered.push(c)
+        }
+
+        escaped = !escaped
 
         return
       }
@@ -277,13 +281,13 @@ function tokenize() {
     if(state !== READY) {
       return
     }
-    
+
     stream.queue({
         type: ATTR
       , data: {
             lhs: lhs
           , rhs: gathered.join('')
-          , cmp: cmp 
+          , cmp: cmp
         }
     })
 

@@ -67,6 +67,7 @@ function test_select_multiple(assert) {
   assert.ok(language('[first=test]')(data))
   assert.ok(language('[first="test"]')(data))
   assert.ok(language('[second="gary busey"]')(data))
+  assert.ok(language('[second="gary busey"] [second="gary busey"]')(data))
   assert.ok(language('[third|=m]')(data))
   assert.ok(language('[third|=richard]')(data))
   assert.ok(language('[third|=nixon]')(data))
