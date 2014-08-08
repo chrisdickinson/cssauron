@@ -71,6 +71,7 @@ function parse(selector, options) {
 
     crnt.push(
         token.type === 'attr' ? attr(token) :
+        token.type === 'class' ? contains(token.type, token.data) :
         token.type === ':' || token.type === '::' ? pseudo(token) :
         token.type === '*' ? Boolean :
         matches(token.type, token.data)
@@ -157,6 +158,14 @@ function parse(selector, options) {
       }
 
       return true
+    }
+  }
+
+  function contains(type, data) {
+    return function(node) {
+      var val = options[type](node)
+      val = (val instanceof Array) ? val : val = val.split(' ')
+      return val.indexOf(data) >= 0
     }
   }
 
@@ -269,7 +278,7 @@ function valid_not_match(options, selector) {
   var fn = parse(selector, options)
 
   return not_function
-  
+
   function not_function(node) {
     return !fn(node, true)
   }
