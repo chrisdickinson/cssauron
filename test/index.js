@@ -13,6 +13,7 @@ language = cssauron({
 })
 
 test('select single', test_select_single)
+test('select classlist', test_select_classlist)
 test('select multiple', test_select_multiple)
 test('select subject', test_select_subject)
 
@@ -28,12 +29,28 @@ function test_select_single(assert) {
   assert.end()
 }
 
+function test_select_classlist(assert) {
+  var data =  [
+    { class: 'a-class b-class c-class' },
+    { class: ['a-class', 'b-class', 'c-class'] }
+  ]
+
+  data.forEach(function(data) {
+    assert.ok(language('.a-class')(data))
+    assert.ok(language('.b-class')(data))
+    assert.ok(language('.c-class')(data))
+    assert.ok(!language('.one-other-class')(data))
+  })
+
+  assert.end()
+}
+
 function test_select_multiple(assert) {
   var data = {id: 'one-id', class: 'one-class', tag: 'one-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[]}
     , data2 = {id: 'two-id', class: 'two-class', tag: 'two-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[]}
     , data3 = {id: 'three-id', class: 'three-class', tag: 'three-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[]}
-    , parent = {id: 'parent-id', class: 'parent-class', tag: 'parent-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[data, data2, data3]} 
-    , root = {id: 'root-id', class: 'root-class', tag: 'root-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[parent]} 
+    , parent = {id: 'parent-id', class: 'parent-class', tag: 'parent-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[data, data2, data3]}
+    , root = {id: 'root-id', class: 'root-class', tag: 'root-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[parent]}
 
   data.parent = parent
   data2.parent = parent
@@ -95,8 +112,8 @@ function test_select_subject(assert) {
   var data = {id: 'one-id', class: 'one-class', tag: 'one-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[]}
     , data2 = {id: 'two-id', class: 'two-class', tag: 'two-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[]}
     , data3 = {id: 'three-id', class: 'three-class', tag: 'three-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[]}
-    , parent = {id: 'parent-id', class: 'parent-class', tag: 'parent-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[data, data2, data3]} 
-    , root = {id: 'root-id', class: 'root-class', tag: 'root-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[parent]} 
+    , parent = {id: 'parent-id', class: 'parent-class', tag: 'parent-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[data, data2, data3]}
+    , root = {id: 'root-id', class: 'root-class', tag: 'root-tag', attr:{first: 'test', second:'gary busey', third:'richard-m-nixon'}, parent:null, children:[parent]}
     , res
 
   data.parent = parent
