@@ -2,9 +2,10 @@ module.exports = language
 
 var tokenizer = require('./tokenizer')
 
-function language(lookups) {
+function language(lookups, matchComparison) {
   return function(selector) {
-    return parse(selector, remap(lookups))
+    return parse(selector, remap(lookups),
+                 matchComparison || caseSensitiveComparison)
   }
 }
 
@@ -23,7 +24,7 @@ function opt_okay(opts, key) {
   return opts.hasOwnProperty(key) && typeof opts[key] === 'string'
 }
 
-function parse(selector, options) {
+function parse(selector, options, matchComparison) {
   var stream = tokenizer()
     , default_subj = true
     , selectors = [[]]
@@ -74,7 +75,7 @@ function parse(selector, options) {
         token.type === 'attr' ? attr(token) :
         token.type === ':' || token.type === '::' ? pseudo(token) :
         token.type === '*' ? Boolean :
-        matches(token.type, token.data)
+        matches(token.type, token.data, matchComparison)
     )
   }
 
@@ -183,9 +184,9 @@ function parse(selector, options) {
       valid_attr(options.attr, token.data)
   }
 
-  function matches(type, data) {
+  function matches(type, data, matchComparison) {
     return function(node) {
-      return options[type](node) == data
+      return matchComparison(type, options[type](node), data);
     }
   }
 
@@ -243,7 +244,7 @@ function parse(selector, options) {
   }
 
   function pseudo(token) {
-    return valid_pseudo(options, token.data)
+    return valid_pseudo(options, token.data, matchComparison)
   }
 
 }
@@ -252,7 +253,7 @@ function entry(node, next, subj) {
   return next(node, subj) ? node : null
 }
 
-function valid_pseudo(options, match) {
+function valid_pseudo(options, match, matchComparison) {
   switch(match) {
     case 'empty': return valid_empty(options)
     case 'first-child': return valid_first_child(options)
@@ -265,11 +266,11 @@ function valid_pseudo(options, match) {
   }
 
   if(match.indexOf('any') === 0) {
-    return valid_any_match(options, match.slice(4, -1))
+    return valid_any_match(options, match.slice(4, -1), matchComparison)
   }
 
   if(match.indexOf('not') === 0) {
-    return valid_not_match(options, match.slice(4, -1))
+    return valid_not_match(options, match.slice(4, -1), matchComparison)
   }
 
   return function() {
@@ -277,8 +278,8 @@ function valid_pseudo(options, match) {
   }
 }
 
-function valid_not_match(options, selector) {
-  var fn = parse(selector, options)
+function valid_not_match(options, selector, matchComparison) {
+  var fn = parse(selector, options, matchComparison)
 
   return not_function
 
@@ -287,8 +288,8 @@ function valid_not_match(options, selector) {
   }
 }
 
-function valid_any_match(options, selector) {
-  var fn = parse(selector, options)
+function valid_any_match(options, selector, matchComparison) {
+  var fn = parse(selector, options, matchComparison)
 
   return fn
 }
@@ -371,4 +372,8 @@ function check_spc(l, r) {
 
 function check_dsh(l, r) {
   return l.split('-').indexOf(r) > -1
+}
+
+function caseSensitiveComparison(type, pattern, data) {
+  return pattern === data;
 }
