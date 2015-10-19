@@ -87,6 +87,7 @@ Checking the following selectors against the `span.jake-busey` element yields:
 
  - `:first-child`
  - `:last-child`
+ - `:nth-child`
  - `:empty`
  - `:root`
  - `:contains(text)`
