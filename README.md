@@ -58,7 +58,7 @@ Compiles a matching function.
 
 ### match(node) -> false | node | [subjects, ...]
 
-Returns false if the provided node matches the selector. Returns truthy if the provided
+Returns false if the provided node does not match the selector. Returns truthy if the provided
 node *does* match. Exact return value is determined by the selector, based on
 the [CSS4 subject selector spec](http://dev.w3.org/csswg/selectors4/#subject): if only
 a single node is matched, only that node is returned. If multiple subjects are matched,
