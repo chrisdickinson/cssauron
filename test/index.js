@@ -10,6 +10,12 @@ language = cssauron({
   , parent: 'parent'
   , children: 'children'
   , contents: 'contents || ""'
+}, function(type, pattern, data) {
+  if (type == 'tag') {
+    return pattern.toLowerCase() == data.toLowerCase();
+  } else {
+    return pattern == data;
+  }
 })
 
 test('select single', test_select_single)
@@ -26,6 +32,8 @@ function test_select_single(assert) {
   assert.ok(!language('.one-other-class')(data))
   assert.ok(language('one-tag')(data))
   assert.ok(!language('two-tag')(data))
+  assert.ok(language('ONE-TAG')(data))
+  assert.ok(!language('TWO-TAG')(data))
   assert.end()
 }
 
@@ -76,6 +84,7 @@ function test_select_multiple(assert) {
   assert.ok(language('.one-class + .two-class')(data2))
   assert.ok(!language('.one-class + #one-id')(data))
   assert.ok(language('one-tag ~ #three-id')(data3))
+  assert.ok(language('ONE-TAG ~ #three-id')(data3))
   assert.ok(language('one-tag:first-child')(data))
   assert.ok(language('one-tag:empty')(data))
   assert.ok(!language('#parent-id:empty')(parent))
