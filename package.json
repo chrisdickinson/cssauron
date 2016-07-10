@@ -22,7 +22,7 @@
   "author": "Chris Dickinson <chris@neversaw.us>",
   "license": "MIT",
   "dependencies": {
-    "through": "X.X.X"
+    "through": "^2.3.8"
   },
   "devDependencies": {
     "tape": "~2.0.0"
