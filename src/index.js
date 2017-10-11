@@ -1,8 +1,6 @@
-module.exports = language
+import tokenizer from './tokenizer';
 
-var tokenizer = require('./tokenizer')
-
-function language(lookups, matchComparison) {
+export default function language(lookups, matchComparison) {
   return function(selector) {
     return parse(selector, remap(lookups),
                  matchComparison || caseSensitiveComparison)

@@ -1,13 +1,15 @@
 {
   "name": "cssauron",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "create matching selectors from css for your very own nested object hierarchy",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "module": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "node test/index.js"
+    "test": "npm run build && node test/index.js",
+    "build": "babel src -d lib"
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,8 @@
     "through": "X.X.X"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
     "tape": "~2.0.0"
   }
 }

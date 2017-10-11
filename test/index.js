@@ -1,4 +1,4 @@
-var cssauron = require('../index')
+var cssauron = require('../lib/index').default
   , test = require('tape')
   , language
 

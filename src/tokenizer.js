@@ -1,6 +1,4 @@
-module.exports = tokenize
-
-var through = require('through')
+var through = require('through');
 
 var PSEUDOSTART = 'pseudo-start'
   , ATTR_START = 'attr-start'
@@ -19,10 +17,10 @@ var PSEUDOSTART = 'pseudo-start'
   , STAR = '*'
   , ID = 'id'
 
-function tokenize() {
+export default function tokenize() {
   var escaped = false
     , gathered = []
-    , state = READY 
+    , state = READY
     , data = []
     , idx = 0
     , stream
